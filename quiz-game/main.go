@@ -24,7 +24,7 @@ func main() {
 		panic(err)
 	}
 
-	quiz(&data)
+	correct, wrong := quiz(&data)
 
 	fmt.Printf("Number of questions answered correctly: %d\n", correct)
 	fmt.Printf("Number of questions answered wrongly: %d\n", wrong)
