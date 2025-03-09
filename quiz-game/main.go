@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"os"
@@ -19,21 +20,35 @@ func main() {
 		panic(err)
 	}
 
-	questionsAndAnswers := make(map[string]string)
+	correct, wrong := quiz(&data)
 
-	for _, row := range data {
-		questionsAndAnswers[row[0]] = row[1]
-	}
-
-	quiz(&questionsAndAnswers)
+	fmt.Printf("Number of questions answered correctly: %d\n", correct)
+	fmt.Printf("Number of questions answered wrongly: %d\n", wrong)
 }
 
-func quiz(questionsAndAnswers *map[string]string) (correct, wrong int) {
+func quiz(questionsAndAnswers *[][]string) (correct, wrong int) {
 	correct = 0
 	wrong = 0
 
-	for key, value := range *questionsAndAnswers {
-		fmt.Println(key, " ", value)
+	scanner := bufio.NewScanner(os.Stdin)
+
+	for index, row := range *questionsAndAnswers {
+		fmt.Printf("Problem #%d: %s = ", index+1, row[0])
+
+		scanner.Scan()
+		err := scanner.Err()
+
+		if err != nil {
+			panic(err)
+		}
+
+		answer := scanner.Text()
+
+		if answer == row[1] {
+			correct++
+		} else {
+			wrong++
+		}
 	}
 
 	return correct, wrong
