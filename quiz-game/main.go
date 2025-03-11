@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -63,5 +64,7 @@ func quiz(questionsAndAnswers *[][]string, limit int) (correct int) {
 
 func getUserInput(answerCh chan string, scanner *bufio.Scanner) {
 	scanner.Scan()
-	answerCh <- scanner.Text()
+	answer := strings.ToLower(strings.Trim(scanner.Text(), " "))
+
+	answerCh <- answer
 }
