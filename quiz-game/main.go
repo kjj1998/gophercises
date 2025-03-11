@@ -5,17 +5,19 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"strings"
 	"time"
 )
 
 func main() {
-	csvFilePtr := flag.String("csv", "problems.csv", "a csv file in the format of 'question,answer'")
-	limitPtr := flag.Int("limit", 30, "the time limit for the quiz in seconds")
+	csvFile := flag.String("csv", "problems.csv", "a csv file in the format of 'question,answer'")
+	limit := flag.Int("limit", 30, "the time limit for the quiz in seconds")
+	shuffle := flag.Bool("shuffle", false, "Whether to shuffle the quiz order or not")
 	flag.Parse()
 
-	file, err := os.Open(*csvFilePtr)
+	file, err := os.Open(*csvFile)
 	if err != nil {
 		panic(err)
 	}
@@ -27,7 +29,13 @@ func main() {
 		panic(err)
 	}
 
-	correct := quiz(&data, *limitPtr)
+	if *shuffle {
+		rand.Shuffle(len(data), func(i, j int) {
+			data[i], data[j] = data[j], data[i]
+		})
+	}
+
+	correct := quiz(&data, *limit)
 
 	fmt.Printf("Number of questions answered correctly: %d\n", correct)
 	fmt.Printf("Total number of questions: %d\n", len(data))
