@@ -1,13 +1,24 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	urlshort "github.com/kjj1998/gophercises/url-short"
+	"gopkg.in/yaml.v2"
 )
 
+type T struct {
+	Path string `yaml:"path"`
+	Url  string `yaml:"url"`
+}
+
 func main() {
+	yamlFile := flag.String("yaml", "paths.yaml", "a yaml file containing paths and the urls each of them redirect to")
+	flag.Parse()
+
 	mux := defaultMux()
 
 	// Build the MapHandler using the mux as the fallback
@@ -17,15 +28,15 @@ func main() {
 	}
 	mapHandler := urlshort.MapHandler(pathsToUrls, mux)
 
-	// Build the YAMLHandler using the mapHandler as the
-	// fallback
-	yaml := `
-- path: /urlshort
-  url: https://github.com/gophercises/urlshort
-- path: /urlshort-final
-  url: https://github.com/gophercises/urlshort/tree/solution
-`
-	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler)
+	// Build the YAMLHandler using the mapHandler as the fallback
+	file, err := os.Open(*yamlFile)
+	if err != nil {
+		panic(err)
+	}
+
+	decoder := yaml.NewDecoder(file)
+
+	yamlHandler, err := urlshort.YAMLHandler(decoder, mapHandler)
 	if err != nil {
 		panic(err)
 	}
