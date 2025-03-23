@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/boltdb/bolt"
+	"github.com/kjj1998/gophercises/url-short/database"
 	"gopkg.in/yaml.v2"
 )
 
@@ -72,6 +74,16 @@ func parseYAML(decoder *yaml.Decoder) ([]T, error) {
 	return mappings, err
 }
 
+func buildYamlMap(mappings []T) map[string]string {
+	pathsToUrl := make(map[string]string)
+
+	for _, v := range mappings {
+		pathsToUrl[v.Path] = v.Url
+	}
+
+	return pathsToUrl
+}
+
 func JSONHandler(bytes []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	parsedJson, err := parseJSON(bytes)
 	if err != nil {
@@ -91,7 +103,7 @@ func parseJSON(bytes []byte) ([]J, error) {
 	return mappings, err
 }
 
-func buildYamlMap(mappings []T) map[string]string {
+func buildJsonMap(mappings []J) map[string]string {
 	pathsToUrl := make(map[string]string)
 
 	for _, v := range mappings {
@@ -101,12 +113,16 @@ func buildYamlMap(mappings []T) map[string]string {
 	return pathsToUrl
 }
 
-func buildJsonMap(mappings []J) map[string]string {
-	pathsToUrl := make(map[string]string)
+func DBHandler(db *bolt.DB, fallback http.Handler) (http.HandlerFunc, error) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		url := database.SearchURL(db, path)
 
-	for _, v := range mappings {
-		pathsToUrl[v.Path] = v.Url
-	}
+		if url == "" {
+			fallback.ServeHTTP(w, r)
+			return
+		}
 
-	return pathsToUrl
+		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	}), nil
 }

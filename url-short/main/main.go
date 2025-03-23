@@ -3,10 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
 	urlshort "github.com/kjj1998/gophercises/url-short"
+	database "github.com/kjj1998/gophercises/url-short/database"
 	"gopkg.in/yaml.v2"
 )
 
@@ -16,6 +18,17 @@ type T struct {
 }
 
 func main() {
+	// Open BoltDB
+	db, err := database.OpenDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	// Create bucket and populate
+	database.CreateBucket(db)
+
 	mux := defaultMux()
 	yamlFile := flag.String("yaml", "paths.yaml", "a yaml file containing paths and the urls each of them redirect to")
 	flag.Parse()
@@ -49,9 +62,34 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", jsonHandler)
-	http.ListenAndServe(":8081", yamlHandler)
+	dbHandler, err := urlshort.DBHandler(db, mux)
+	if err != nil {
+		panic(err)
+	}
+
+	// Start multiple servers concurrently
+	go func() {
+		fmt.Println("Starting JSON server on :8080")
+		if err := http.ListenAndServe(":8080", jsonHandler); err != nil {
+			fmt.Println("Error starting JSON server:", err)
+		}
+	}()
+
+	go func() {
+		fmt.Println("Starting YAML server on :8081")
+		if err := http.ListenAndServe(":8081", yamlHandler); err != nil {
+			fmt.Println("Error starting YAML server:", err)
+		}
+	}()
+
+	go func() {
+		fmt.Println("Starting DB server on :8082")
+		if err := http.ListenAndServe(":8082", dbHandler); err != nil {
+			fmt.Println("Error starting DB server:", err)
+		}
+	}()
+
+	select {}
 }
 
 func defaultMux() *http.ServeMux {
