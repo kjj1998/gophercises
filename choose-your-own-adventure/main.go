@@ -11,10 +11,6 @@ import (
 
 var mappings models.Story
 
-// func frontPageHandler(w http.ResponseWriter, r *http.Request) {
-// 	http.Redirect(w, r, "/intro", http.StatusTemporaryRedirect)
-// }
-
 func handler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
