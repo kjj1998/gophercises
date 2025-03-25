@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Choose Your Own Adventure</title>
+  </head>
+  <body>
+    <section>
+      <h1>{{.Title}}</h1>
+      {{ range .Story }}
+        <p>{{ . }}</p>
+      {{ end }}
+      <ul>
+        {{ range .Options }}
+          <li>
+            {{ .Text }}
+          </li>
+        {{ end }}
+      </ul>
+    </section>
+  </body>
+</html>
