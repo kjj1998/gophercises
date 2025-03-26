@@ -13,7 +13,7 @@
       <ul>
         {{ range .Options }}
           <li>
-            {{ .Text }}
+            <a href="http://localhost:8080/{{ .Arc }}">{{ .Text }}</a>
           </li>
         {{ end }}
       </ul>
