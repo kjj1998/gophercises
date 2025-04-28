@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"io"
 	"net/http"
-
-	"golang.org/x/net/html"
 )
 
-func ReadPageHtml(url string) (*html.Node, error) {
+func ReadPageHtml(url string) (io.Reader, error) {
 	res, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -20,10 +18,5 @@ func ReadPageHtml(url string) (*html.Node, error) {
 	}
 	res.Body.Close()
 
-	doc, err := html.Parse(bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
+	return bytes.NewReader(body), nil
 }
